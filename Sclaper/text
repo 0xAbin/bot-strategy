@@ -1,0 +1,1950 @@
+
+# --- Do not remove these libs ---
+from freqtrade.strategy import IStrategy
+from typing import Dict, List
+from functools import reduce
+from pandas import DataFrame
+# --------------------------------
+
+import talib.abstract as ta
+import freqtrade.vendor.qtpylib.indicators as qtpylib
+
+
+class Strategy001(IStrategy):
+    """
+    Strategy 001
+    author@: Gerald Lonlas
+    github@: https://github.com/freqtrade/freqtrade-strategies
+
+    How to use it?
+    > python3 ./freqtrade/main.py -s Strategy001
+    """
+
+    INTERFACE_VERSION: int = 3
+    # Minimal ROI designed for the strategy.
+    # This attribute will be overridden if the config file contains "minimal_roi"
+    minimal_roi = {
+        "60":  0.01,
+        "30":  0.03,
+        "20":  0.04,
+        "0":  0.05
+    }
+
+    # Optimal stoploss designed for the strategy
+    # This attribute will be overridden if the config file contains "stoploss"
+    stoploss = -0.10
+
+    # Optimal timeframe for the strategy
+    timeframe = '5m'
+
+    # trailing stoploss
+    trailing_stop = False
+    trailing_stop_positive = 0.01
+    trailing_stop_positive_offset = 0.02
+
+    # run "populate_indicators" only for new candle
+    process_only_new_candles = True
+
+    # Experimental settings (configuration will overide these if set)
+    use_exit_signal = True
+    exit_profit_only = True
+    ignore_roi_if_entry_signal = False
+
+    # Optional order type mapping
+    order_types = {
+        'entry': 'limit',
+        'exit': 'limit',
+        'stoploss': 'market',
+        'stoploss_on_exchange': False
+    }
+
+    def informative_pairs(self):
+        """
+        Define additional, informative pair/interval combinations to be cached from the exchange.
+        These pair/interval combinations are non-tradeable, unless they are part
+        of the whitelist as well.
+        For more information, please consult the documentation
+        :return: List of tuples in the format (pair, interval)
+            Sample: return [("ETH/USDT", "5m"),
+                            ("BTC/USDT", "15m"),
+                            ]
+        """
+        return []
+
+    def populate_indicators(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
+        """
+        Adds several different TA indicators to the given DataFrame
+
+        Performance Note: For the best performance be frugal on the number of indicators
+        you are using. Let uncomment only the indicator you are using in your strategies
+        or your hyperopt configuration, otherwise you will waste your memory and CPU usage.
+        """
+
+        dataframe['ema20'] = ta.EMA(dataframe, timeperiod=20)
+        dataframe['ema50'] = ta.EMA(dataframe, timeperiod=50)
+        dataframe['ema100'] = ta.EMA(dataframe, timeperiod=100)
+
+        heikinashi = qtpylib.heikinashi(dataframe)
+        dataframe['ha_open'] = heikinashi['open']
+        dataframe['ha_close'] = heikinashi['close']
+
+        return dataframe
+
+    def populate_entry_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
+        """
+        Based on TA indicators, populates the buy signal for the given dataframe
+        :param dataframe: DataFrame
+        :return: DataFrame with buy column
+        """
+        dataframe.loc[
+            (
+                qtpylib.crossed_above(dataframe['ema20'], dataframe['ema50']) &
+                (dataframe['ha_close'] > dataframe['ema20']) &
+                (dataframe['ha_open'] < dataframe['ha_close'])  # green bar
+            ),
+            'enter_long'] = 1
+
+        return dataframe
+
+    def populate_exit_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
+        """
+        Based on TA indicators, populates the sell signal for the given dataframe
+        :param dataframe: DataFrame
+        :return: DataFrame with buy column
+        """
+        dataframe.loc[
+            (
+                qtpylib.crossed_above(dataframe['ema50'], dataframe['ema100']) &
+                (dataframe['ha_close'] < dataframe['ema20']) &
+                (dataframe['ha_open'] > dataframe['ha_close'])  # red bar
+            ),
+            'exit_long'] = 1
+        return dataframe
+
+
+
+
+# Strar 2 :
+    
+
+# --- Do not remove these libs ---
+from freqtrade.strategy import IStrategy
+from typing import Dict, List
+from functools import reduce
+from pandas import DataFrame
+# --------------------------------
+
+import talib.abstract as ta
+import freqtrade.vendor.qtpylib.indicators as qtpylib
+import numpy # noqa
+
+
+class Strategy002(IStrategy):
+    """
+    Strategy 002
+    author@: Gerald Lonlas
+    github@: https://github.com/freqtrade/freqtrade-strategies
+
+    How to use it?
+    > python3 ./freqtrade/main.py -s Strategy002
+    """
+
+    INTERFACE_VERSION: int = 3
+    # Minimal ROI designed for the strategy.
+    # This attribute will be overridden if the config file contains "minimal_roi"
+    minimal_roi = {
+        "60":  0.01,
+        "30":  0.03,
+        "20":  0.04,
+        "0":  0.05
+    }
+
+    # Optimal stoploss designed for the strategy
+    # This attribute will be overridden if the config file contains "stoploss"
+    stoploss = -0.10
+
+    # Optimal timeframe for the strategy
+    timeframe = '5m'
+
+    # trailing stoploss
+    trailing_stop = False
+    trailing_stop_positive = 0.01
+    trailing_stop_positive_offset = 0.02
+
+    # run "populate_indicators" only for new candle
+    process_only_new_candles = True
+
+    # Experimental settings (configuration will overide these if set)
+    use_exit_signal = True
+    exit_profit_only = True
+    ignore_roi_if_entry_signal = False
+
+    # Optional order type mapping
+    order_types = {
+        'entry': 'limit',
+        'exit': 'limit',
+        'stoploss': 'market',
+        'stoploss_on_exchange': False
+    }
+
+    def informative_pairs(self):
+        """
+        Define additional, informative pair/interval combinations to be cached from the exchange.
+        These pair/interval combinations are non-tradeable, unless they are part
+        of the whitelist as well.
+        For more information, please consult the documentation
+        :return: List of tuples in the format (pair, interval)
+            Sample: return [("ETH/USDT", "5m"),
+                            ("BTC/USDT", "15m"),
+                            ]
+        """
+        return []
+
+    def populate_indicators(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
+        """
+        Adds several different TA indicators to the given DataFrame
+
+        Performance Note: For the best performance be frugal on the number of indicators
+        you are using. Let uncomment only the indicator you are using in your strategies
+        or your hyperopt configuration, otherwise you will waste your memory and CPU usage.
+        """
+
+        # Stoch
+        stoch = ta.STOCH(dataframe)
+        dataframe['slowk'] = stoch['slowk']
+
+        # RSI
+        dataframe['rsi'] = ta.RSI(dataframe)
+
+        # Inverse Fisher transform on RSI, values [-1.0, 1.0] (https://goo.gl/2JGGoy)
+        rsi = 0.1 * (dataframe['rsi'] - 50)
+        dataframe['fisher_rsi'] = (numpy.exp(2 * rsi) - 1) / (numpy.exp(2 * rsi) + 1)
+
+        # Bollinger bands
+        bollinger = qtpylib.bollinger_bands(qtpylib.typical_price(dataframe), window=20, stds=2)
+        dataframe['bb_lowerband'] = bollinger['lower']
+
+        # SAR Parabol
+        dataframe['sar'] = ta.SAR(dataframe)
+
+        # Hammer: values [0, 100]
+        dataframe['CDLHAMMER'] = ta.CDLHAMMER(dataframe)
+
+        return dataframe
+
+    def populate_entry_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
+        """
+        Based on TA indicators, populates the buy signal for the given dataframe
+        :param dataframe: DataFrame
+        :return: DataFrame with buy column
+        """
+        dataframe.loc[
+            (
+                (dataframe['rsi'] < 30) &
+                (dataframe['slowk'] < 20) &
+                (dataframe['bb_lowerband'] > dataframe['close']) &
+                (dataframe['CDLHAMMER'] == 100)
+            ),
+            'enter_long'] = 1
+
+        return dataframe
+
+    def populate_exit_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
+        """
+        Based on TA indicators, populates the sell signal for the given dataframe
+        :param dataframe: DataFrame
+        :return: DataFrame with buy column
+        """
+        dataframe.loc[
+            (
+                (dataframe['sar'] > dataframe['close']) &
+                (dataframe['fisher_rsi'] > 0.3)
+            ),
+            'exit_long'] = 1
+        return dataframe
+    
+
+    # Strat3 
+
+
+
+# --- Do not remove these libs ---
+from freqtrade.strategy import IStrategy
+from typing import Dict, List
+from functools import reduce
+from pandas import DataFrame
+# --------------------------------
+
+import talib.abstract as ta
+import freqtrade.vendor.qtpylib.indicators as qtpylib
+import numpy # noqa
+
+
+class Strategy003(IStrategy):
+    """
+    Strategy 003
+    author@: Gerald Lonlas
+    github@: https://github.com/freqtrade/freqtrade-strategies
+
+    How to use it?
+    > python3 ./freqtrade/main.py -s Strategy003
+    """
+
+    INTERFACE_VERSION: int = 3
+    # Minimal ROI designed for the strategy.
+    # This attribute will be overridden if the config file contains "minimal_roi"
+    minimal_roi = {
+        "60":  0.01,
+        "30":  0.03,
+        "20":  0.04,
+        "0":  0.05
+    }
+
+    # Optimal stoploss designed for the strategy
+    # This attribute will be overridden if the config file contains "stoploss"
+    stoploss = -0.10
+
+    # Optimal timeframe for the strategy
+    timeframe = '5m'
+
+    # trailing stoploss
+    trailing_stop = False
+    trailing_stop_positive = 0.01
+    trailing_stop_positive_offset = 0.02
+
+    # run "populate_indicators" only for new candle
+    process_only_new_candles = True
+
+    # Experimental settings (configuration will overide these if set)
+    use_exit_signal = True
+    exit_profit_only = True
+    ignore_roi_if_entry_signal = False
+
+    # Optional order type mapping
+    order_types = {
+        'entry': 'limit',
+        'exit': 'limit',
+        'stoploss': 'market',
+        'stoploss_on_exchange': False
+    }
+
+    def informative_pairs(self):
+        """
+        Define additional, informative pair/interval combinations to be cached from the exchange.
+        These pair/interval combinations are non-tradeable, unless they are part
+        of the whitelist as well.
+        For more information, please consult the documentation
+        :return: List of tuples in the format (pair, interval)
+            Sample: return [("ETH/USDT", "5m"),
+                            ("BTC/USDT", "15m"),
+                            ]
+        """
+        return []
+
+    def populate_indicators(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
+        """
+        Adds several different TA indicators to the given DataFrame
+
+        Performance Note: For the best performance be frugal on the number of indicators
+        you are using. Let uncomment only the indicator you are using in your strategies
+        or your hyperopt configuration, otherwise you will waste your memory and CPU usage.
+        """
+
+        # MFI
+        dataframe['mfi'] = ta.MFI(dataframe)
+
+        # Stoch fast
+        stoch_fast = ta.STOCHF(dataframe)
+        dataframe['fastd'] = stoch_fast['fastd']
+        dataframe['fastk'] = stoch_fast['fastk']
+
+        # RSI
+        dataframe['rsi'] = ta.RSI(dataframe)
+
+        # Inverse Fisher transform on RSI, values [-1.0, 1.0] (https://goo.gl/2JGGoy)
+        rsi = 0.1 * (dataframe['rsi'] - 50)
+        dataframe['fisher_rsi'] = (numpy.exp(2 * rsi) - 1) / (numpy.exp(2 * rsi) + 1)
+
+        # Bollinger bands
+        bollinger = qtpylib.bollinger_bands(qtpylib.typical_price(dataframe), window=20, stds=2)
+        dataframe['bb_lowerband'] = bollinger['lower']
+
+        # EMA - Exponential Moving Average
+        dataframe['ema5'] = ta.EMA(dataframe, timeperiod=5)
+        dataframe['ema10'] = ta.EMA(dataframe, timeperiod=10)
+        dataframe['ema50'] = ta.EMA(dataframe, timeperiod=50)
+        dataframe['ema100'] = ta.EMA(dataframe, timeperiod=100)
+
+        # SAR Parabol
+        dataframe['sar'] = ta.SAR(dataframe)
+
+        # SMA - Simple Moving Average
+        dataframe['sma'] = ta.SMA(dataframe, timeperiod=40)
+
+        return dataframe
+
+    def populate_entry_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
+        """
+        Based on TA indicators, populates the buy signal for the given dataframe
+        :param dataframe: DataFrame
+        :return: DataFrame with buy column
+        """
+        dataframe.loc[
+            (
+                (dataframe['rsi'] < 28) &
+                (dataframe['rsi'] > 0) &
+                (dataframe['close'] < dataframe['sma']) &
+                (dataframe['fisher_rsi'] < -0.94) &
+                (dataframe['mfi'] < 16.0) &
+                (
+                    (dataframe['ema50'] > dataframe['ema100']) |
+                    (qtpylib.crossed_above(dataframe['ema5'], dataframe['ema10']))
+                ) &
+                (dataframe['fastd'] > dataframe['fastk']) &
+                (dataframe['fastd'] > 0)
+            ),
+            'enter_long'] = 1
+
+        return dataframe
+
+    def populate_exit_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
+        """
+        Based on TA indicators, populates the sell signal for the given dataframe
+        :param dataframe: DataFrame
+        :return: DataFrame with buy column
+        """
+        dataframe.loc[
+            (
+                (dataframe['sar'] > dataframe['close']) &
+                (dataframe['fisher_rsi'] > 0.3)
+            ),
+            'exit_long'] = 1
+        return dataframe
+    
+
+    # strat4 
+
+
+# --- Do not remove these libs ---
+from freqtrade.strategy import IStrategy
+from typing import Dict, List
+from functools import reduce
+from pandas import DataFrame
+# --------------------------------
+
+import talib.abstract as ta
+
+
+class Strategy004(IStrategy):
+
+    """
+    Strategy 004
+    author@: Gerald Lonlas
+    github@: https://github.com/freqtrade/freqtrade-strategies
+
+    How to use it?
+    > python3 ./freqtrade/main.py -s Strategy004
+    """
+
+    INTERFACE_VERSION: int = 3
+    # Minimal ROI designed for the strategy.
+    # This attribute will be overridden if the config file contains "minimal_roi"
+    minimal_roi = {
+        "60":  0.01,
+        "30":  0.03,
+        "20":  0.04,
+        "0":  0.05
+    }
+
+    # Optimal stoploss designed for the strategy
+    # This attribute will be overridden if the config file contains "stoploss"
+    stoploss = -0.10
+
+    # Optimal timeframe for the strategy
+    timeframe = '5m'
+
+    # trailing stoploss
+    trailing_stop = False
+    trailing_stop_positive = 0.01
+    trailing_stop_positive_offset = 0.02
+
+    # run "populate_indicators" only for new candle
+    process_only_new_candles = True
+
+    # Experimental settings (configuration will overide these if set)
+    use_exit_signal = True
+    exit_profit_only = True
+    ignore_roi_if_entry_signal = False
+
+    # Optional order type mapping
+    order_types = {
+        'entry': 'limit',
+        'exit': 'limit',
+        'stoploss': 'market',
+        'stoploss_on_exchange': False
+    }
+
+    def informative_pairs(self):
+        """
+        Define additional, informative pair/interval combinations to be cached from the exchange.
+        These pair/interval combinations are non-tradeable, unless they are part
+        of the whitelist as well.
+        For more information, please consult the documentation
+        :return: List of tuples in the format (pair, interval)
+            Sample: return [("ETH/USDT", "5m"),
+                            ("BTC/USDT", "15m"),
+                            ]
+        """
+        return []
+
+    def populate_indicators(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
+        """
+        Adds several different TA indicators to the given DataFrame
+
+        Performance Note: For the best performance be frugal on the number of indicators
+        you are using. Let uncomment only the indicator you are using in your strategies
+        or your hyperopt configuration, otherwise you will waste your memory and CPU usage.
+        """
+
+        # ADX
+        dataframe['adx'] = ta.ADX(dataframe)
+        dataframe['slowadx'] = ta.ADX(dataframe, 35)
+
+        # Commodity Channel Index: values Oversold:<-100, Overbought:>100
+        dataframe['cci'] = ta.CCI(dataframe)
+
+        # Stoch
+        stoch = ta.STOCHF(dataframe, 5)
+        dataframe['fastd'] = stoch['fastd']
+        dataframe['fastk'] = stoch['fastk']
+        dataframe['fastk-previous'] = dataframe.fastk.shift(1)
+        dataframe['fastd-previous'] = dataframe.fastd.shift(1)
+
+        # Slow Stoch
+        slowstoch = ta.STOCHF(dataframe, 50)
+        dataframe['slowfastd'] = slowstoch['fastd']
+        dataframe['slowfastk'] = slowstoch['fastk']
+        dataframe['slowfastk-previous'] = dataframe.slowfastk.shift(1)
+        dataframe['slowfastd-previous'] = dataframe.slowfastd.shift(1)
+
+        # EMA - Exponential Moving Average
+        dataframe['ema5'] = ta.EMA(dataframe, timeperiod=5)
+        
+        # get the rolling volume mean for the last hour (12x5)
+        # Note: dataframe['volume'].mean() uses the whole dataframe in 
+        # backtesting hence will have lookahead, but would be fine for dry/live use
+        dataframe['mean-volume'] = dataframe['volume'].rolling(12).mean()
+
+        return dataframe
+
+    def populate_entry_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
+        """
+        Based on TA indicators, populates the buy signal for the given dataframe
+        :param dataframe: DataFrame
+        :return: DataFrame with buy column
+        """
+        dataframe.loc[
+            (
+                (
+                    (dataframe['adx'] > 50) |
+                    (dataframe['slowadx'] > 26)
+                ) &
+                (dataframe['cci'] < -100) &
+                (
+                    (dataframe['fastk-previous'] < 20) &
+                    (dataframe['fastd-previous'] < 20)
+                ) &
+                (
+                    (dataframe['slowfastk-previous'] < 30) &
+                    (dataframe['slowfastd-previous'] < 30)
+                ) &
+                (dataframe['fastk-previous'] < dataframe['fastd-previous']) &
+                (dataframe['fastk'] > dataframe['fastd']) &
+                (dataframe['mean-volume'] > 0.75) &
+                (dataframe['close'] > 0.00000100)
+            ),
+            'enter_long'] = 1
+
+        return dataframe
+
+    def populate_exit_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
+        """
+        Based on TA indicators, populates the sell signal for the given dataframe
+        :param dataframe: DataFrame
+        :return: DataFrame with buy column
+        """
+        dataframe.loc[
+            (
+                (dataframe['slowadx'] < 25) &
+                ((dataframe['fastk'] > 70) | (dataframe['fastd'] > 70)) &
+                (dataframe['fastk-previous'] < dataframe['fastd-previous']) &
+                (dataframe['close'] > dataframe['ema5'])
+            ),
+            'exit_long'] = 1
+        return dataframe
+    
+
+
+    # start 5
+
+
+# --- Do not remove these libs ---
+from freqtrade.strategy import IStrategy
+from freqtrade.strategy import CategoricalParameter, IntParameter
+from functools import reduce
+from pandas import DataFrame
+# --------------------------------
+
+import talib.abstract as ta
+import freqtrade.vendor.qtpylib.indicators as qtpylib
+import numpy # noqa
+
+
+class Strategy005(IStrategy):
+    """
+    Strategy 005
+    author@: Gerald Lonlas
+    github@: https://github.com/freqtrade/freqtrade-strategies
+
+    How to use it?
+    > python3 ./freqtrade/main.py -s Strategy005
+    """
+    INTERFACE_VERSION = 3
+
+    # Minimal ROI designed for the strategy.
+    # This attribute will be overridden if the config file contains "minimal_roi"
+    minimal_roi = {
+        "1440": 0.01,
+        "80": 0.02,
+        "40": 0.03,
+        "20": 0.04,
+        "0":  0.05
+    }
+
+    # Optimal stoploss designed for the strategy
+    # This attribute will be overridden if the config file contains "stoploss"
+    stoploss = -0.10
+
+    # Optimal timeframe for the strategy
+    timeframe = '5m'
+
+    # trailing stoploss
+    trailing_stop = False
+    trailing_stop_positive = 0.01
+    trailing_stop_positive_offset = 0.02
+
+    # run "populate_indicators" only for new candle
+    process_only_new_candles = True
+
+    # Experimental settings (configuration will overide these if set)
+    use_exit_signal = True
+    exit_profit_only = True
+    ignore_roi_if_entry_signal = False
+
+    # Optional order type mapping
+    order_types = {
+        'entry': 'limit',
+        'exit': 'limit',
+        'stoploss': 'market',
+        'stoploss_on_exchange': False
+    }
+
+    buy_volumeAVG = IntParameter(low=50, high=300, default=70, space='buy', optimize=True)
+    buy_rsi = IntParameter(low=1, high=100, default=30, space='buy', optimize=True)
+    buy_fastd = IntParameter(low=1, high=100, default=30, space='buy', optimize=True)
+    buy_fishRsiNorma = IntParameter(low=1, high=100, default=30, space='buy', optimize=True)
+
+    sell_rsi = IntParameter(low=1, high=100, default=70, space='sell', optimize=True)
+    sell_minusDI = IntParameter(low=1, high=100, default=50, space='sell', optimize=True)
+    sell_fishRsiNorma = IntParameter(low=1, high=100, default=50, space='sell', optimize=True)
+    sell_trigger = CategoricalParameter(["rsi-macd-minusdi", "sar-fisherRsi"],
+                                        default=30, space='sell', optimize=True)
+
+    # Buy hyperspace params:
+    buy_params = {
+        "buy_fastd": 1,
+        "buy_fishRsiNorma": 5,
+        "buy_rsi": 26,
+        "buy_volumeAVG": 150,
+    }
+
+    # Sell hyperspace params:
+    sell_params = {
+        "sell_fishRsiNorma": 30,
+        "sell_minusDI": 4,
+        "sell_rsi": 74,
+        "sell_trigger": "rsi-macd-minusdi",
+    }
+
+    def informative_pairs(self):
+        """
+        Define additional, informative pair/interval combinations to be cached from the exchange.
+        These pair/interval combinations are non-tradeable, unless they are part
+        of the whitelist as well.
+        For more information, please consult the documentation
+        :return: List of tuples in the format (pair, interval)
+            Sample: return [("ETH/USDT", "5m"),
+                            ("BTC/USDT", "15m"),
+                            ]
+        """
+        return []
+
+    def populate_indicators(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
+        """
+        Adds several different TA indicators to the given DataFrame
+
+        Performance Note: For the best performance be frugal on the number of indicators
+        you are using. Let uncomment only the indicator you are using in your strategies
+        or your hyperopt configuration, otherwise you will waste your memory and CPU usage.
+        """
+
+        # MACD
+        macd = ta.MACD(dataframe)
+        dataframe['macd'] = macd['macd']
+        dataframe['macdsignal'] = macd['macdsignal']
+
+        # Minus Directional Indicator / Movement
+        dataframe['minus_di'] = ta.MINUS_DI(dataframe)
+
+        # RSI
+        dataframe['rsi'] = ta.RSI(dataframe)
+
+        # Inverse Fisher transform on RSI, values [-1.0, 1.0] (https://goo.gl/2JGGoy)
+        rsi = 0.1 * (dataframe['rsi'] - 50)
+        dataframe['fisher_rsi'] = (numpy.exp(2 * rsi) - 1) / (numpy.exp(2 * rsi) + 1)
+        # Inverse Fisher transform on RSI normalized, value [0.0, 100.0] (https://goo.gl/2JGGoy)
+        dataframe['fisher_rsi_norma'] = 50 * (dataframe['fisher_rsi'] + 1)
+
+        # Stoch fast
+        stoch_fast = ta.STOCHF(dataframe)
+        dataframe['fastd'] = stoch_fast['fastd']
+        dataframe['fastk'] = stoch_fast['fastk']
+
+        # Overlap Studies
+        # ------------------------------------
+
+        # SAR Parabol
+        dataframe['sar'] = ta.SAR(dataframe)
+
+        # SMA - Simple Moving Average
+        dataframe['sma'] = ta.SMA(dataframe, timeperiod=40)
+
+        return dataframe
+
+    def populate_entry_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
+        """
+        Based on TA indicators, populates the buy signal for the given dataframe
+        :param dataframe: DataFrame
+        :return: DataFrame with buy column
+        """
+        dataframe.loc[
+            # Prod
+            (
+                (dataframe['close'] > 0.00000200) &
+                (dataframe['volume'] > dataframe['volume'].rolling(self.buy_volumeAVG.value).mean() * 4) &
+                (dataframe['close'] < dataframe['sma']) &
+                (dataframe['fastd'] > dataframe['fastk']) &
+                (dataframe['rsi'] > self.buy_rsi.value) &
+                (dataframe['fastd'] > self.buy_fastd.value) &
+                (dataframe['fisher_rsi_norma'] < self.buy_fishRsiNorma.value)
+            ),
+            'enter_long'] = 1
+
+        return dataframe
+
+    def populate_exit_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
+        """
+        Based on TA indicators, populates the sell signal for the given dataframe
+        :param dataframe: DataFrame
+        :return: DataFrame with buy column
+        """
+
+        conditions = []
+        if self.sell_trigger.value == 'rsi-macd-minusdi':
+            conditions.append(qtpylib.crossed_above(dataframe['rsi'], self.sell_rsi.value))
+            conditions.append(dataframe['macd'] < 0)
+            conditions.append(dataframe['minus_di'] > self.sell_minusDI.value)
+        if self.sell_trigger.value == 'sar-fisherRsi':
+            conditions.append(dataframe['sar'] > dataframe['close'])
+            conditions.append(dataframe['fisher_rsi'] > self.sell_fishRsiNorma.value)
+
+        if conditions:
+            dataframe.loc[reduce(lambda x, y: x & y, conditions), 'exit_long'] = 1
+
+        return dataframe
+    
+
+    # start 6 
+
+
+    """
+Supertrend strategy:
+* Description: Generate a 3 supertrend indicators for 'buy' strategies & 3 supertrend indicators for 'sell' strategies
+               Buys if the 3 'buy' indicators are 'up'
+               Sells if the 3 'sell' indicators are 'down'
+* Author: @juankysoriano (Juan Carlos Soriano)
+* github: https://github.com/juankysoriano/
+
+*** NOTE: This Supertrend strategy is just one of many possible strategies using `Supertrend` as indicator. It should on any case used at your own risk.
+          It comes with at least a couple of caveats:
+            1. The implementation for the `supertrend` indicator is based on the following discussion: https://github.com/freqtrade/freqtrade-strategies/issues/30 . Concretelly https://github.com/freqtrade/freqtrade-strategies/issues/30#issuecomment-853042401
+            2. The implementation for `supertrend` on this strategy is not validated; meaning this that is not proven to match the results by the paper where it was originally introduced or any other trusted academic resources
+"""
+
+import logging
+from numpy.lib import math
+from freqtrade.strategy import IStrategy, IntParameter
+from pandas import DataFrame
+import talib.abstract as ta
+import numpy as np
+
+class Supertrend(IStrategy):
+    # Buy params, Sell params, ROI, Stoploss and Trailing Stop are values generated by 'freqtrade hyperopt --strategy Supertrend --hyperopt-loss ShortTradeDurHyperOptLoss --timerange=20210101- --timeframe=1h --spaces all'
+    # It's encourage you find the values that better suites your needs and risk management strategies
+
+    INTERFACE_VERSION: int = 3
+    # Buy hyperspace params:
+    buy_params = {
+        "buy_m1": 4,
+        "buy_m2": 7,
+        "buy_m3": 1,
+        "buy_p1": 8,
+        "buy_p2": 9,
+        "buy_p3": 8,
+    }
+
+    # Sell hyperspace params:
+    sell_params = {
+        "sell_m1": 1,
+        "sell_m2": 3,
+        "sell_m3": 6,
+        "sell_p1": 16,
+        "sell_p2": 18,
+        "sell_p3": 18,
+    }
+
+    # ROI table:
+    minimal_roi = {
+        "0": 0.087,
+        "372": 0.058,
+        "861": 0.029,
+        "2221": 0
+    }
+
+    # Stoploss:
+    stoploss = -0.265
+
+    # Trailing stop:
+    trailing_stop = True
+    trailing_stop_positive = 0.05
+    trailing_stop_positive_offset = 0.144
+    trailing_only_offset_is_reached = False
+
+    timeframe = '1h'
+
+    startup_candle_count = 18
+
+    buy_m1 = IntParameter(1, 7, default=4)
+    buy_m2 = IntParameter(1, 7, default=4)
+    buy_m3 = IntParameter(1, 7, default=4)
+    buy_p1 = IntParameter(7, 21, default=14)
+    buy_p2 = IntParameter(7, 21, default=14)
+    buy_p3 = IntParameter(7, 21, default=14)
+
+    sell_m1 = IntParameter(1, 7, default=4)
+    sell_m2 = IntParameter(1, 7, default=4)
+    sell_m3 = IntParameter(1, 7, default=4)
+    sell_p1 = IntParameter(7, 21, default=14)
+    sell_p2 = IntParameter(7, 21, default=14)
+    sell_p3 = IntParameter(7, 21, default=14)
+
+    def populate_indicators(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
+        for multiplier in self.buy_m1.range:
+            for period in self.buy_p1.range:
+                dataframe[f'supertrend_1_buy_{multiplier}_{period}'] = self.supertrend(dataframe, multiplier, period)['STX']
+
+        for multiplier in self.buy_m2.range:
+            for period in self.buy_p2.range:
+                dataframe[f'supertrend_2_buy_{multiplier}_{period}'] = self.supertrend(dataframe, multiplier, period)['STX']
+
+        for multiplier in self.buy_m3.range:
+            for period in self.buy_p3.range:
+                dataframe[f'supertrend_3_buy_{multiplier}_{period}'] = self.supertrend(dataframe, multiplier, period)['STX']
+
+        for multiplier in self.sell_m1.range:
+            for period in self.sell_p1.range:
+                dataframe[f'supertrend_1_sell_{multiplier}_{period}'] = self.supertrend(dataframe, multiplier, period)['STX']
+
+        for multiplier in self.sell_m2.range:
+            for period in self.sell_p2.range:
+                dataframe[f'supertrend_2_sell_{multiplier}_{period}'] = self.supertrend(dataframe, multiplier, period)['STX']
+
+        for multiplier in self.sell_m3.range:
+            for period in self.sell_p3.range:
+                dataframe[f'supertrend_3_sell_{multiplier}_{period}'] = self.supertrend(dataframe, multiplier, period)['STX']
+
+        return dataframe
+
+    def populate_entry_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
+        dataframe.loc[
+            (
+               (dataframe[f'supertrend_1_buy_{self.buy_m1.value}_{self.buy_p1.value}'] == 'up') &
+               (dataframe[f'supertrend_2_buy_{self.buy_m2.value}_{self.buy_p2.value}'] == 'up') &
+               (dataframe[f'supertrend_3_buy_{self.buy_m3.value}_{self.buy_p3.value}'] == 'up') & # The three indicators are 'up' for the current candle
+               (dataframe['volume'] > 0) # There is at least some trading volume
+        ),
+            'enter_long'] = 1
+
+        return dataframe
+
+    def populate_exit_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
+        dataframe.loc[
+            (
+               (dataframe[f'supertrend_1_sell_{self.sell_m1.value}_{self.sell_p1.value}'] == 'down') &
+               (dataframe[f'supertrend_2_sell_{self.sell_m2.value}_{self.sell_p2.value}'] == 'down') &
+               (dataframe[f'supertrend_3_sell_{self.sell_m3.value}_{self.sell_p3.value}'] == 'down') & # The three indicators are 'down' for the current candle
+               (dataframe['volume'] > 0) # There is at least some trading volume
+            ),
+            'exit_long'] = 1
+
+        return dataframe
+
+
+
+    """
+        Supertrend Indicator; adapted for freqtrade
+        from: https://github.com/freqtrade/freqtrade-strategies/issues/30
+    """
+    def supertrend(self, dataframe: DataFrame, multiplier, period):
+        df = dataframe.copy()
+
+        df['TR'] = ta.TRANGE(df)
+        df['ATR'] = ta.SMA(df['TR'], period)
+
+        st = 'ST_' + str(period) + '_' + str(multiplier)
+        stx = 'STX_' + str(period) + '_' + str(multiplier)
+
+        # Compute basic upper and lower bands
+        df['basic_ub'] = (df['high'] + df['low']) / 2 + multiplier * df['ATR']
+        df['basic_lb'] = (df['high'] + df['low']) / 2 - multiplier * df['ATR']
+
+        # Compute final upper and lower bands
+        df['final_ub'] = 0.00
+        df['final_lb'] = 0.00
+        for i in range(period, len(df)):
+            df['final_ub'].iat[i] = df['basic_ub'].iat[i] if df['basic_ub'].iat[i] < df['final_ub'].iat[i - 1] or df['close'].iat[i - 1] > df['final_ub'].iat[i - 1] else df['final_ub'].iat[i - 1]
+            df['final_lb'].iat[i] = df['basic_lb'].iat[i] if df['basic_lb'].iat[i] > df['final_lb'].iat[i - 1] or df['close'].iat[i - 1] < df['final_lb'].iat[i - 1] else df['final_lb'].iat[i - 1]
+
+        # Set the Supertrend value
+        df[st] = 0.00
+        for i in range(period, len(df)):
+            df[st].iat[i] = df['final_ub'].iat[i] if df[st].iat[i - 1] == df['final_ub'].iat[i - 1] and df['close'].iat[i] <= df['final_ub'].iat[i] else \
+                            df['final_lb'].iat[i] if df[st].iat[i - 1] == df['final_ub'].iat[i - 1] and df['close'].iat[i] >  df['final_ub'].iat[i] else \
+                            df['final_lb'].iat[i] if df[st].iat[i - 1] == df['final_lb'].iat[i - 1] and df['close'].iat[i] >= df['final_lb'].iat[i] else \
+                            df['final_ub'].iat[i] if df[st].iat[i - 1] == df['final_lb'].iat[i - 1] and df['close'].iat[i] <  df['final_lb'].iat[i] else 0.00
+        # Mark the trend direction up/down
+        df[stx] = np.where((df[st] > 0.00), np.where((df['close'] < df[st]), 'down',  'up'), np.NaN)
+
+        # Remove basic and final bands from the columns
+        df.drop(['basic_ub', 'basic_lb', 'final_ub', 'final_lb'], inplace=True, axis=1)
+
+        df.fillna(0, inplace=True)
+
+        return DataFrame(index=df.index, data={
+            'ST' : df[st],
+            'STX' : df[stx]
+        })
+    
+
+    # start7
+
+
+    """
+author      = "Kevin Ossenbrück"
+copyright   = "Free For Use"
+credits     = ["Bloom Trading, Mohsen Hassan"]
+license     = "MIT"
+version     = "1.0"
+maintainer  = "Kevin Ossenbrück"
+email       = "kevin.ossenbrueck@pm.de"
+status      = "Live"
+"""
+
+from freqtrade.strategy import IStrategy
+from freqtrade.strategy import IntParameter
+from functools import reduce
+from pandas import DataFrame
+
+import talib.abstract as ta
+import freqtrade.vendor.qtpylib.indicators as qtpylib
+import numpy
+
+
+
+# CCI timerperiods and values
+cciBuyTP = 72
+cciBuyVal = -175
+cciSellTP = 66
+cciSellVal = -106
+
+# RSI timeperiods and values
+rsiBuyTP = 36
+rsiBuyVal = 90
+rsiSellTP = 45
+rsiSellVal = 88
+
+
+class SwingHighToSky(IStrategy):
+    INTERFACE_VERSION = 3
+
+    timeframe = '15m'
+
+    stoploss = -0.34338
+
+    minimal_roi = {"0": 0.27058, "33": 0.0853, "64": 0.04093, "244": 0}
+
+    buy_cci = IntParameter(low=-200, high=200, default=100, space='buy', optimize=True)
+    buy_cciTime = IntParameter(low=10, high=80, default=20, space='buy', optimize=True)
+    buy_rsi = IntParameter(low=10, high=90, default=30, space='buy', optimize=True)
+    buy_rsiTime = IntParameter(low=10, high=80, default=26, space='buy', optimize=True)
+
+    sell_cci = IntParameter(low=-200, high=200, default=100, space='sell', optimize=True)
+    sell_cciTime = IntParameter(low=10, high=80, default=20, space='sell', optimize=True)
+    sell_rsi = IntParameter(low=10, high=90, default=30, space='sell', optimize=True)
+    sell_rsiTime = IntParameter(low=10, high=80, default=26, space='sell', optimize=True)
+
+    # Buy hyperspace params:
+    buy_params = {
+        "buy_cci": -175,
+        "buy_cciTime": 72,
+        "buy_rsi": 90,
+        "buy_rsiTime": 36,
+    }
+
+    # Sell hyperspace params:
+    sell_params = {
+        "sell_cci": -106,
+        "sell_cciTime": 66,
+        "sell_rsi": 88,
+        "sell_rsiTime": 45,
+    }
+
+    def informative_pairs(self):
+        return []
+
+    def populate_indicators(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
+
+        for val in self.buy_cciTime.range:
+            dataframe[f'cci-{val}'] = ta.CCI(dataframe, timeperiod=val)
+
+        for val in self.sell_cciTime.range:
+            dataframe[f'cci-sell-{val}'] = ta.CCI(dataframe, timeperiod=val)
+
+        for val in self.buy_rsiTime.range:
+            dataframe[f'rsi-{val}'] = ta.RSI(dataframe, timeperiod=val)
+
+        for val in self.sell_rsiTime.range:
+            dataframe[f'rsi-sell-{val}'] = ta.RSI(dataframe, timeperiod=val)
+
+        return dataframe
+
+    def populate_entry_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
+
+        dataframe.loc[
+            (
+                (dataframe[f'cci-{self.buy_cciTime.value}'] < self.buy_cci.value) &
+                (dataframe[f'rsi-{self.buy_rsiTime.value}'] < self.buy_rsi.value)
+            ),
+            'enter_long'] = 1
+
+        return dataframe
+
+    def populate_exit_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
+
+        dataframe.loc[
+            (
+                (dataframe[f'cci-sell-{self.sell_cciTime.value}'] > self.sell_cci.value) &
+                (dataframe[f'rsi-sell-{self.sell_rsiTime.value}'] > self.sell_rsi.value)
+            ),
+            'exit_long'] = 1
+
+        return dataframe
+    
+
+
+    # start 8
+
+    # pragma pylint: disable=missing-docstring, invalid-name, pointless-string-statement
+# flake8: noqa: F401
+# isort: skip_file
+# --- Do not remove these libs ---
+import numpy as np
+import pandas as pd
+from pandas import DataFrame
+from datetime import datetime
+from typing import Optional, Union
+
+from freqtrade.strategy import (BooleanParameter, CategoricalParameter, DecimalParameter,
+                                IntParameter, IStrategy, merge_informative_pair)
+
+# --------------------------------
+# Add your lib to import here
+import talib.abstract as ta
+import pandas_ta as pta
+from technical import qtpylib
+
+
+class UniversalMACD(IStrategy):
+    # By: Masoud Azizi (@mablue)
+    # Tradingview Page: https://www.tradingview.com/script/xNEWcB8s-Universal-Moving-Average-Convergence-Divergence/
+
+    # Strategy interface version - allow new iterations of the strategy interface.
+    # Check the documentation or the Sample strategy to get the latest version.
+    INTERFACE_VERSION = 3
+
+    # Optimal timeframe for the strategy.
+    timeframe = '5m'
+
+    # Can this strategy go short?
+    can_short: bool = False
+
+    # $ freqtrade hyperopt -s UniversalMACD --hyperopt-loss SharpeHyperOptLossDaily
+
+    # "max_open_trades": 1,
+    # "stake_currency": "USDT",
+    # "stake_amount": 990,
+    # "dry_run_wallet": 1000,
+    # "trading_mode": "spot",
+    # "XMR/USDT","ATOM/USDT","FTM/USDT","CHR/USDT","BNB/USDT","ALGO/USDT","XEM/USDT","XTZ/USDT","ZEC/USDT","ADA/USDT",
+    # "CHZ/USDT","BTT/USDT","LUNA/USDT","VRA/USDT","KSM/USDT","DASH/USDT","COMP/USDT","CRO/USDT","WAVES/USDT","MKR/USDT",
+    # "DIA/USDT","LINK/USDT","DOT/USDT","YFI/USDT","UNI/USDT","FIL/USDT","AAVE/USDT","KCS/USDT","LTC/USDT","BSV/USDT",
+    # "XLM/USDT","ETC/USDT","ETH/USDT","BTC/USDT","XRP/USDT","TRX/USDT","VET/USDT","NEO/USDT","EOS/USDT","BCH/USDT",
+    # "CRV/USDT","SUSHI/USDT","KLV/USDT","DOGE/USDT","CAKE/USDT","AVAX/USDT","MANA/USDT","SAND/USDT","SHIB/USDT",
+    # "KDA/USDT","ICP/USDT","MATIC/USDT","ELON/USDT","NFT/USDT","ARRR/USDT","NEAR/USDT","CLV/USDT","SOL/USDT","SLP/USDT",
+    # "XPR/USDT","DYDX/USDT","FTT/USDT","KAVA/USDT","XEC/USDT"
+    # "method": "StaticPairList"
+
+    # *16 / 100: 40    trades.
+    # 31 / 9 / 0    Wins / Draws / Losses.
+    # Avg    profit    2.34 %.
+    # Median    profit    3.00 %.
+    # Total    profit    928.95036811    USDT(92.90 %).
+    # Avg    duration    3: 13:00    min.\
+    # Objective: -11.63412
+
+    # ROI table:
+    minimal_roi = {
+        "0": 0.213,
+        "27": 0.099,
+        "60": 0.03,
+        "164": 0
+    }
+
+    # Stoploss:
+    stoploss = -0.318
+
+    # Trailing stop:
+    trailing_stop = False  # value loaded from strategy
+    trailing_stop_positive = None  # value loaded from strategy
+    trailing_stop_positive_offset = 0.0  # value loaded from strategy
+    trailing_only_offset_is_reached = False  # value loaded from strategy
+
+    # Number of candles the strategy requires before producing valid signals
+    startup_candle_count: int = 30
+
+    # Strategy parameters
+    buy_umacd_max = DecimalParameter(-0.05, 0.05, decimals=5, default=-0.01176, space="buy")
+    buy_umacd_min = DecimalParameter(-0.05, 0.05, decimals=5, default=-0.01416, space="buy")
+    sell_umacd_max = DecimalParameter(-0.05, 0.05, decimals=5, default=-0.02323, space="sell")
+    sell_umacd_min = DecimalParameter(-0.05, 0.05, decimals=5, default=-0.00707, space="sell")
+
+    def populate_indicators(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
+        dataframe['ma12'] = ta.EMA(dataframe, timeperiod=12)
+        dataframe['ma26'] = ta.EMA(dataframe, timeperiod=26)
+        dataframe['umacd'] = (dataframe['ma12'] / dataframe['ma26']) - 1
+
+        # Just for show user the min and max of indicator in different coins to set inside hyperoptable variables.cuz
+        # in different timeframes should change the min and max in hyperoptable variables.
+        # print(dataframe['umacd'].min(), dataframe['umacd'].max())
+
+        return dataframe
+
+    def populate_entry_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
+        dataframe.loc[
+            (
+                (dataframe['umacd'].between(self.buy_umacd_min.value, self.buy_umacd_max.value))
+
+            ),
+            'enter_long'] = 1
+
+        return dataframe
+
+    def populate_exit_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
+        dataframe.loc[
+            (
+                (dataframe['umacd'].between(self.sell_umacd_min.value, self.sell_umacd_max.value))
+            ),
+            'exit_long'] = 1
+
+        return dataframe
+    
+
+    # start9
+
+
+    # GodStra Strategy
+# Author: @Mablue (Masoud Azizi)
+# github: https://github.com/mablue/
+# IMPORTANT:Add to your pairlists inside config.json (Under StaticPairList):
+#   {
+#       "method": "AgeFilter",
+#       "min_days_listed": 30
+#   },
+# IMPORTANT: INSTALL TA BEFOUR RUN(pip install ta)
+# IMPORTANT: Use Smallest "max_open_trades" for getting best results inside config.json
+
+# --- Do not remove these libs ---
+import logging
+from functools import reduce
+
+import freqtrade.vendor.qtpylib.indicators as qtpylib
+import numpy as np
+# Add your lib to import here
+# import talib.abstract as ta
+import pandas as pd
+from freqtrade.strategy import IStrategy
+from numpy.lib import math
+from pandas import DataFrame
+# import talib.abstract as ta
+from ta import add_all_ta_features
+from ta.utils import dropna
+
+# --------------------------------
+
+
+
+class GodStra(IStrategy):
+    # 5/66:      9 trades. 8/0/1 Wins/Draws/Losses. Avg profit  21.83%. Median profit  35.52%. Total profit  1060.11476586 USDT ( 196.50Σ%). Avg duration 3440.0 min. Objective: -7.06960
+    # +--------+---------+----------+------------------+--------------+-------------------------------+----------------+-------------+
+    # |   Best |   Epoch |   Trades |    Win Draw Loss |   Avg profit |                        Profit |   Avg duration |   Objective |
+    # |--------+---------+----------+------------------+--------------+-------------------------------+----------------+-------------|
+    # | * Best |   1/500 |       11 |      2    1    8 |        5.22% |  280.74230393 USDT   (57.40%) |      2,421.8 m |    -2.85206 |
+    # | * Best |   2/500 |       10 |      7    0    3 |       18.76% |  983.46414442 USDT  (187.58%) |        360.0 m |    -4.32665 |
+    # | * Best |   5/500 |        9 |      8    0    1 |       21.83% | 1,060.11476586 USDT  (196.50%) |      3,440.0 m |     -7.0696 |
+
+    INTERFACE_VERSION: int = 3
+    # Buy hyperspace params:
+    buy_params = {
+        'buy-cross-0': 'volatility_kcc',
+        'buy-indicator-0': 'trend_ichimoku_base',
+        'buy-int-0': 42,
+        'buy-oper-0': '<R',
+        'buy-real-0': 0.06295
+    }
+
+    # Sell hyperspace params:
+    sell_params = {
+        'sell-cross-0': 'volume_mfi',
+        'sell-indicator-0': 'trend_kst_diff',
+        'sell-int-0': 98,
+        'sell-oper-0': '=R',
+        'sell-real-0': 0.8779
+    }
+
+    # ROI table:
+    minimal_roi = {
+        "0": 0.3556,
+        "4818": 0.21275,
+        "6395": 0.09024,
+        "22372": 0
+    }
+
+    # Stoploss:
+    stoploss = -0.34549
+
+    # Trailing stop:
+    trailing_stop = True
+    trailing_stop_positive = 0.22673
+    trailing_stop_positive_offset = 0.2684
+    trailing_only_offset_is_reached = True
+    # Buy hypers
+    timeframe = '12h'
+    print('Add {\n\t"method": "AgeFilter",\n\t"min_days_listed": 30\n},\n to your pairlists in config (Under StaticPairList)')
+
+    def dna_size(self, dct: dict):
+        def int_from_str(st: str):
+            str_int = ''.join([d for d in st if d.isdigit()])
+            if str_int:
+                return int(str_int)
+            return -1  # in case if the parameter somehow doesn't have index
+        return len({int_from_str(digit) for digit in dct.keys()})
+
+    def populate_indicators(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
+        # Add all ta features
+        dataframe = dropna(dataframe)
+        dataframe = add_all_ta_features(
+            dataframe, open="open", high="high", low="low", close="close", volume="volume",
+            fillna=True)
+        # dataframe.to_csv("df.csv", index=True)
+        return dataframe
+
+    def populate_entry_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
+        conditions = list()
+        # /5: Cuz We have 5 Group of variables inside buy_param
+        for i in range(self.dna_size(self.buy_params)):
+
+            OPR = self.buy_params[f'buy-oper-{i}']
+            IND = self.buy_params[f'buy-indicator-{i}']
+            CRS = self.buy_params[f'buy-cross-{i}']
+            INT = self.buy_params[f'buy-int-{i}']
+            REAL = self.buy_params[f'buy-real-{i}']
+            DFIND = dataframe[IND]
+            DFCRS = dataframe[CRS]
+
+            if OPR == ">":
+                conditions.append(DFIND > DFCRS)
+            elif OPR == "=":
+                conditions.append(np.isclose(DFIND, DFCRS))
+            elif OPR == "<":
+                conditions.append(DFIND < DFCRS)
+            elif OPR == "CA":
+                conditions.append(qtpylib.crossed_above(DFIND, DFCRS))
+            elif OPR == "CB":
+                conditions.append(qtpylib.crossed_below(DFIND, DFCRS))
+            elif OPR == ">I":
+                conditions.append(DFIND > INT)
+            elif OPR == "=I":
+                conditions.append(DFIND == INT)
+            elif OPR == "<I":
+                conditions.append(DFIND < INT)
+            elif OPR == ">R":
+                conditions.append(DFIND > REAL)
+            elif OPR == "=R":
+                conditions.append(np.isclose(DFIND, REAL))
+            elif OPR == "<R":
+                conditions.append(DFIND < REAL)
+
+        print(conditions)
+        dataframe.loc[
+            reduce(lambda x, y: x & y, conditions),
+            'enter_long'] = 1
+
+        return dataframe
+
+    def populate_exit_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
+        conditions = list()
+        for i in range(self.dna_size(self.sell_params)):
+            OPR = self.sell_params[f'sell-oper-{i}']
+            IND = self.sell_params[f'sell-indicator-{i}']
+            CRS = self.sell_params[f'sell-cross-{i}']
+            INT = self.sell_params[f'sell-int-{i}']
+            REAL = self.sell_params[f'sell-real-{i}']
+            DFIND = dataframe[IND]
+            DFCRS = dataframe[CRS]
+
+            if OPR == ">":
+                conditions.append(DFIND > DFCRS)
+            elif OPR == "=":
+                conditions.append(np.isclose(DFIND, DFCRS))
+            elif OPR == "<":
+                conditions.append(DFIND < DFCRS)
+            elif OPR == "CA":
+                conditions.append(qtpylib.crossed_above(DFIND, DFCRS))
+            elif OPR == "CB":
+                conditions.append(qtpylib.crossed_below(DFIND, DFCRS))
+            elif OPR == ">I":
+                conditions.append(DFIND > INT)
+            elif OPR == "=I":
+                conditions.append(DFIND == INT)
+            elif OPR == "<I":
+                conditions.append(DFIND < INT)
+            elif OPR == ">R":
+                conditions.append(DFIND > REAL)
+            elif OPR == "=R":
+                conditions.append(np.isclose(DFIND, REAL))
+            elif OPR == "<R":
+                conditions.append(DFIND < REAL)
+
+        dataframe.loc[
+            reduce(lambda x, y: x & y, conditions),
+            'exit_long'] = 1
+
+        return dataframe
+    
+
+    # start 10 
+
+
+    # pragma pylint: disable=missing-docstring, invalid-name, pointless-string-statement
+# flake8: noqa: F401
+
+# --- Do not remove these libs ---
+import numpy as np  # noqa
+import pandas as pd  # noqa
+from pandas import DataFrame
+
+from freqtrade.strategy import (BooleanParameter, CategoricalParameter, DecimalParameter,
+                                IStrategy, IntParameter)
+
+# --------------------------------
+# Add your lib to import here
+import talib
+import talib.abstract as ta
+import pandas_ta as pta
+import freqtrade.vendor.qtpylib.indicators as qtpylib
+from technical.util import resample_to_interval, resampled_merge
+
+
+class PatternRecognition(IStrategy):
+    # Pattern Recognition Strategy
+    # By: @Mablue
+    # freqtrade hyperopt -s PatternRecognition --hyperopt-loss SharpeHyperOptLossDaily -e 1000
+    #
+
+    # 173/1000:    510 trades. 408/14/88 Wins/Draws/Losses. Avg profit   2.35%. Median profit   5.60%. Total profit 5421.34509618 USDT ( 542.13%). Avg duration 7 days, 11:54:00 min. Objective: -1.60426
+
+
+    INTERFACE_VERSION: int = 3
+    # Buy hyperspace params:
+    buy_params = {
+        "buy_pr1": "CDLHIGHWAVE",
+        "buy_vol1": -100,
+    }
+
+    # ROI table:
+    minimal_roi = {
+        "0": 0.936,
+        "5271": 0.332,
+        "18147": 0.086,
+        "48152": 0
+    }
+
+    # Stoploss:
+    stoploss = -0.288
+
+    # Trailing stop:
+    trailing_stop = True
+    trailing_stop_positive = 0.032
+    trailing_stop_positive_offset = 0.084
+    trailing_only_offset_is_reached = True
+
+    # Optimal timeframe for the strategy.
+    timeframe = '1d'
+    prs = talib.get_function_groups()['Pattern Recognition']
+
+    # # Strategy parameters
+    buy_pr1 = CategoricalParameter(prs, default=prs[0], space="buy")
+    buy_vol1 = CategoricalParameter([-100,100], default=0, space="buy")
+
+
+
+    def populate_indicators(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
+        for pr in self.prs:
+            dataframe[pr] = getattr(ta, pr)(dataframe)
+
+        return dataframe
+
+    def populate_entry_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
+        dataframe.loc[
+            (
+                (dataframe[self.buy_pr1.value]==self.buy_vol1.value)
+                # |(dataframe[self.buy_pr2.value]==self.buy_vol2.value)
+            ),
+            'enter_long'] = 1
+
+        return dataframe
+
+    def populate_exit_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
+        dataframe.loc[
+            (
+            #     (dataframe[self.sell_pr1.value]==self.sell_vol1.value)|
+            #     (dataframe[self.sell_pr2.value]==self.sell_vol2.value)
+            ),
+            'exit_long'] = 1
+
+        return dataframe
+    
+
+    # start 11
+
+    from functools import reduce
+from pandas import DataFrame
+from freqtrade.strategy import IStrategy
+
+import talib.abstract as ta
+
+from freqtrade.strategy.interface import IStrategy
+
+class TrendFollowingStrategy(IStrategy):
+
+    INTERFACE_VERSION: int = 3
+    # ROI table:
+    minimal_roi = {"0": 0.15, "30": 0.1, "60": 0.05}
+    # minimal_roi = {"0": 1}
+
+    # Stoploss:
+    stoploss = -0.265
+
+    # Trailing stop:
+    trailing_stop = True
+    trailing_stop_positive = 0.05
+    trailing_stop_positive_offset = 0.1
+    trailing_only_offset_is_reached = False
+
+    timeframe = "5m"
+
+    def populate_indicators(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
+        # Calculate OBV
+        dataframe['obv'] = ta.OBV(dataframe['close'], dataframe['volume'])
+        
+        # Add your trend following indicators here
+        dataframe['trend'] = dataframe['close'].ewm(span=20, adjust=False).mean()
+        
+        return dataframe
+    
+    def populate_entry_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
+        # Add your trend following buy signals here
+        dataframe.loc[
+            (dataframe['close'] > dataframe['trend']) & 
+            (dataframe['close'].shift(1) <= dataframe['trend'].shift(1)) &
+            (dataframe['obv'] > dataframe['obv'].shift(1)), 
+            'enter_long'] = 1
+        
+        # Add your trend following sell signals here
+        dataframe.loc[
+            (dataframe['close'] < dataframe['trend']) & 
+            (dataframe['close'].shift(1) >= dataframe['trend'].shift(1)) &
+            (dataframe['obv'] < dataframe['obv'].shift(1)), 
+            'enter_short'] = -1
+        
+        return dataframe
+
+    def populate_exit_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
+        # Add your trend following exit signals for long positions here
+        dataframe.loc[
+            (dataframe['close'] < dataframe['trend']) & 
+            (dataframe['close'].shift(1) >= dataframe['trend'].shift(1)) &
+            (dataframe['obv'] > dataframe['obv'].shift(1)), 
+            'exit_long'] = 1
+        
+        # Add your trend following exit signals for short positions here
+        dataframe.loc[
+            (dataframe['close'] > dataframe['trend']) & 
+            (dataframe['close'].shift(1) <= dataframe['trend'].shift(1)) &
+            (dataframe['obv'] < dataframe['obv'].shift(1)), 
+            'exit_short'] = 1
+        
+        return dataframe
+
+
+# start 12
+    
+    # flake8: noqa: F401
+# isort: skip_file
+# --- Do not remove these libs ---
+from datetime import datetime
+from typing import Optional
+
+import numpy as np  # noqa
+import pandas as pd  # noqa
+from pandas import DataFrame
+
+import talib.abstract as ta
+from freqtrade.persistence import Trade
+from freqtrade.strategy import (CategoricalParameter, DecimalParameter,
+                                IntParameter, IStrategy)
+from freqtrade.exchange import date_minus_candles
+import freqtrade.vendor.qtpylib.indicators as qtpylib
+
+from technical.util import resample_to_interval, resampled_merge
+
+
+class VolatilitySystem(IStrategy):
+    """
+    Volatility System strategy.
+    Based on https://www.tradingview.com/script/3hhs0XbR/
+
+    Leverage is optional but the lower the better to limit liquidations
+    """
+    can_short = True
+
+    minimal_roi = {
+        "0": 100
+    }
+
+    stoploss = -1
+
+    # Optimal ticker interval for the strategy
+    timeframe = '1h'
+
+    plot_config = {
+        # Main plot indicators (Moving averages, ...)
+        'main_plot': {
+        },
+        'subplots': {
+            "Volatility system": {
+                "atr": {"color": "white"},
+                "abs_close_change": {"color": "red"},
+            }
+        }
+    }
+
+    def populate_indicators(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
+        """
+        Adds several indicators to the given DataFrame
+
+        Performance Note: For the best performance be frugal on the number of indicators
+        you are using. Let easyprofiler do the work for you in finding out which indicators
+        are worth adding.
+        """
+        resample_int = 60 * 3
+        resampled = resample_to_interval(dataframe, resample_int)
+        # Average True Range (ATR)
+        resampled['atr'] = ta.ATR(resampled, timeperiod=14) * 2.0
+        # Absolute close change
+        resampled['close_change'] = resampled['close'].diff()
+        resampled['abs_close_change'] = resampled['close_change'].abs()
+
+        dataframe = resampled_merge(dataframe, resampled, fill_na=True)
+        dataframe['atr'] = dataframe[f'resample_{resample_int}_atr']
+        dataframe['close_change'] = dataframe[f'resample_{resample_int}_close_change']
+        dataframe['abs_close_change'] = dataframe[f'resample_{resample_int}_abs_close_change']
+
+        # Average True Range (ATR)
+        # dataframe['atr'] = ta.ATR(dataframe, timeperiod=14) * 2.0
+        # Absolute close change
+        # dataframe['close_change'] = dataframe['close'].diff()
+        # dataframe['abs_close_change'] = dataframe['close_change'].abs()
+
+        return dataframe
+
+    def populate_entry_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
+        """
+        Based on TA indicators, populates the buy and sell signals for the given dataframe
+        :param dataframe: DataFrame
+        :return: DataFrame with buy and sell columns
+        """
+        # Use qtpylib.crossed_above to get only one signal, otherwise the signal is active
+        # for the whole "long" timeframe.
+        dataframe.loc[
+            # qtpylib.crossed_above(dataframe['close_change'] * 1, dataframe['atr']),
+            (dataframe['close_change'] * 1 > dataframe['atr'].shift(1)),
+            'enter_long'] = 1
+        dataframe.loc[
+            # qtpylib.crossed_above(dataframe['close_change'] * -1, dataframe['atr']),
+            (dataframe['close_change'] * -1 > dataframe['atr'].shift(1)),
+            'enter_short'] = 1
+
+        return dataframe
+
+    def populate_exit_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
+        """
+        use sell/buy signals as long/short indicators
+        """
+        dataframe.loc[
+            dataframe['enter_long'] == 1,
+            'exit_short'] = 1
+        dataframe.loc[
+            dataframe['enter_short'] == 1,
+            'exit_long'] = 1
+        return dataframe
+
+    def custom_stake_amount(self, pair: str, current_time: datetime, current_rate: float,
+                            proposed_stake: float, min_stake: Optional[float], max_stake: float,
+                            leverage: float, entry_tag: Optional[str], side: str,
+                            **kwargs) -> float:
+        # 50% stake amount on initial entry
+        return proposed_stake / 2
+
+    position_adjustment_enable = True
+
+    def adjust_trade_position(self, trade: Trade, current_time: datetime,
+                              current_rate: float, current_profit: float,
+                              min_stake: Optional[float], max_stake: float,
+                              current_entry_rate: float, current_exit_rate: float,
+                              current_entry_profit: float, current_exit_profit: float,
+                              **kwargs) -> Optional[float]:
+        dataframe, _ = self.dp.get_analyzed_dataframe(trade.pair, self.timeframe)
+        if len(dataframe) > 2:
+            last_candle = dataframe.iloc[-1].squeeze()
+            previous_candle = dataframe.iloc[-2].squeeze()
+            signal_name = 'enter_long' if not trade.is_short else 'enter_short'
+            prior_date = date_minus_candles(self.timeframe, 1, current_time)
+            # Only enlarge position on new signal.
+            if (
+                last_candle[signal_name] == 1
+                and previous_candle[signal_name] != 1
+                and trade.nr_of_successful_entries < 2
+                and trade.orders[-1].order_date_utc < prior_date
+            ):
+                return trade.stake_amount
+        return None
+
+    def leverage(self, pair: str, current_time: datetime, current_rate: float,
+                 proposed_leverage: float, max_leverage: float, side: str,
+                 **kwargs) -> float:
+        """
+        Customize leverage for each new trade. This method is only called in futures mode.
+
+        :param pair: Pair that's currently analyzed
+        :param current_time: datetime object, containing the current datetime
+        :param current_rate: Rate, calculated based on pricing settings in exit_pricing.
+        :param proposed_leverage: A leverage proposed by the bot.
+        :param max_leverage: Max leverage allowed on this pair
+        :param entry_tag: Optional entry_tag (buy_tag) if provided with the buy signal.
+        :param side: 'long' or 'short' - indicating the direction of the proposed trade
+        :return: A leverage amount, which is between 1.0 and max_leverage.
+        """
+        return 2.0
+    
+
+    # start 13
+    """
+Supertrend strategy:
+* Description: Generate a 3 supertrend indicators for 'buy' strategies & 3 supertrend indicators for 'sell' strategies
+               Buys if the 3 'buy' indicators are 'up'
+               Sells if the 3 'sell' indicators are 'down'
+* Author: @juankysoriano (Juan Carlos Soriano)
+* github: https://github.com/juankysoriano/
+*** NOTE: This Supertrend strategy is just one of many possible strategies using `Supertrend` as indicator. It should on any case used at your own risk.
+          It comes with at least a couple of caveats:
+            1. The implementation for the `supertrend` indicator is based on the following discussion: https://github.com/freqtrade/freqtrade-strategies/issues/30 . Concretelly https://github.com/freqtrade/freqtrade-strategies/issues/30#issuecomment-853042401
+            2. The implementation for `supertrend` on this strategy is not validated; meaning this that is not proven to match the results by the paper where it was originally introduced or any other trusted academic resources
+"""
+
+import logging
+from numpy.lib import math
+from freqtrade.strategy import IStrategy, IntParameter
+from pandas import DataFrame
+import talib.abstract as ta
+import numpy as np
+
+
+class FSupertrendStrategy(IStrategy):
+    # Buy params, Sell params, ROI, Stoploss and Trailing Stop are values generated by 'freqtrade hyperopt --strategy Supertrend --hyperopt-loss ShortTradeDurHyperOptLoss --timerange=20210101- --timeframe=1h --spaces all'
+    # It's encourage you find the values that better suites your needs and risk management strategies
+
+    INTERFACE_VERSION: int = 3
+    # Buy hyperspace params:
+    buy_params = {
+        "buy_m1": 4,
+        "buy_m2": 7,
+        "buy_m3": 1,
+        "buy_p1": 8,
+        "buy_p2": 9,
+        "buy_p3": 8,
+    }
+
+    # Sell hyperspace params:
+    sell_params = {
+        "sell_m1": 1,
+        "sell_m2": 3,
+        "sell_m3": 6,
+        "sell_p1": 16,
+        "sell_p2": 18,
+        "sell_p3": 18,
+    }
+
+    # ROI table:
+    minimal_roi = {"0": 0.1, "30": 0.75, "60": 0.05, "120": 0.025}
+    # minimal_roi = {"0": 1}
+
+    # Stoploss:
+    stoploss = -0.265
+
+    # Trailing stop:
+    trailing_stop = True
+    trailing_stop_positive = 0.05
+    trailing_stop_positive_offset = 0.1
+    trailing_only_offset_is_reached = False
+
+    timeframe = "1h"
+
+    startup_candle_count = 18
+
+    buy_m1 = IntParameter(1, 7, default=1)
+    buy_m2 = IntParameter(1, 7, default=3)
+    buy_m3 = IntParameter(1, 7, default=4)
+    buy_p1 = IntParameter(7, 21, default=14)
+    buy_p2 = IntParameter(7, 21, default=10)
+    buy_p3 = IntParameter(7, 21, default=10)
+
+    sell_m1 = IntParameter(1, 7, default=1)
+    sell_m2 = IntParameter(1, 7, default=3)
+    sell_m3 = IntParameter(1, 7, default=4)
+    sell_p1 = IntParameter(7, 21, default=14)
+    sell_p2 = IntParameter(7, 21, default=10)
+    sell_p3 = IntParameter(7, 21, default=10)
+
+    def populate_indicators(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
+        for multiplier in self.buy_m1.range:
+            for period in self.buy_p1.range:
+                dataframe[f"supertrend_1_buy_{multiplier}_{period}"] = self.supertrend(
+                    dataframe, multiplier, period
+                )["STX"]
+
+        for multiplier in self.buy_m2.range:
+            for period in self.buy_p2.range:
+                dataframe[f"supertrend_2_buy_{multiplier}_{period}"] = self.supertrend(
+                    dataframe, multiplier, period
+                )["STX"]
+
+        for multiplier in self.buy_m3.range:
+            for period in self.buy_p3.range:
+                dataframe[f"supertrend_3_buy_{multiplier}_{period}"] = self.supertrend(
+                    dataframe, multiplier, period
+                )["STX"]
+
+        for multiplier in self.sell_m1.range:
+            for period in self.sell_p1.range:
+                dataframe[f"supertrend_1_sell_{multiplier}_{period}"] = self.supertrend(
+                    dataframe, multiplier, period
+                )["STX"]
+
+        for multiplier in self.sell_m2.range:
+            for period in self.sell_p2.range:
+                dataframe[f"supertrend_2_sell_{multiplier}_{period}"] = self.supertrend(
+                    dataframe, multiplier, period
+                )["STX"]
+
+        for multiplier in self.sell_m3.range:
+            for period in self.sell_p3.range:
+                dataframe[f"supertrend_3_sell_{multiplier}_{period}"] = self.supertrend(
+                    dataframe, multiplier, period
+                )["STX"]
+
+        return dataframe
+
+    def populate_entry_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
+
+        dataframe.loc[
+            (
+                dataframe[f"supertrend_1_buy_{self.buy_m1.value}_{self.buy_p1.value}"]
+                == "up"
+            )
+            & (
+                dataframe[f"supertrend_2_buy_{self.buy_m2.value}_{self.buy_p2.value}"]
+                == "up"
+            )
+            & (
+                dataframe[f"supertrend_3_buy_{self.buy_m3.value}_{self.buy_p3.value}"]
+                == "up"
+            )
+            & (  # The three indicators are 'up' for the current candle
+                dataframe["volume"] > 0
+            ),
+            "enter_long",
+        ] = 1
+
+        dataframe.loc[
+            (
+                dataframe[
+                    f"supertrend_1_sell_{self.sell_m1.value}_{self.sell_p1.value}"
+                ]
+                == "down"
+            )
+            & (
+                dataframe[
+                    f"supertrend_2_sell_{self.sell_m2.value}_{self.sell_p2.value}"
+                ]
+                == "down"
+            )
+            & (
+                dataframe[
+                    f"supertrend_3_sell_{self.sell_m3.value}_{self.sell_p3.value}"
+                ]
+                == "down"
+            )
+            & (  # The three indicators are 'down' for the current candle
+                dataframe["volume"] > 0
+            ),
+            "enter_short",
+        ] = 1
+
+        return dataframe
+
+    def populate_exit_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
+        dataframe.loc[
+            (
+                dataframe[
+                    f"supertrend_2_sell_{self.sell_m2.value}_{self.sell_p2.value}"
+                ]
+                == "down"
+            ),
+            "exit_long",
+        ] = 1
+
+        dataframe.loc[
+            (
+                dataframe[f"supertrend_2_buy_{self.buy_m2.value}_{self.buy_p2.value}"]
+                == "up"
+            ),
+            "exit_short",
+        ] = 1
+
+        return dataframe
+
+    """
+        Supertrend Indicator; adapted for freqtrade
+        from: https://github.com/freqtrade/freqtrade-strategies/issues/30
+    """
+
+    def supertrend(self, dataframe: DataFrame, multiplier, period):
+        df = dataframe.copy()
+
+        df["TR"] = ta.TRANGE(df)
+        df["ATR"] = ta.SMA(df["TR"], period)
+
+        st = "ST_" + str(period) + "_" + str(multiplier)
+        stx = "STX_" + str(period) + "_" + str(multiplier)
+
+        # Compute basic upper and lower bands
+        df["basic_ub"] = (df["high"] + df["low"]) / 2 + multiplier * df["ATR"]
+        df["basic_lb"] = (df["high"] + df["low"]) / 2 - multiplier * df["ATR"]
+
+        # Compute final upper and lower bands
+        df["final_ub"] = 0.00
+        df["final_lb"] = 0.00
+        for i in range(period, len(df)):
+            df["final_ub"].iat[i] = (
+                df["basic_ub"].iat[i]
+                if df["basic_ub"].iat[i] < df["final_ub"].iat[i - 1]
+                or df["close"].iat[i - 1] > df["final_ub"].iat[i - 1]
+                else df["final_ub"].iat[i - 1]
+            )
+            df["final_lb"].iat[i] = (
+                df["basic_lb"].iat[i]
+                if df["basic_lb"].iat[i] > df["final_lb"].iat[i - 1]
+                or df["close"].iat[i - 1] < df["final_lb"].iat[i - 1]
+                else df["final_lb"].iat[i - 1]
+            )
+
+        # Set the Supertrend value
+        df[st] = 0.00
+        for i in range(period, len(df)):
+            df[st].iat[i] = (
+                df["final_ub"].iat[i]
+                if df[st].iat[i - 1] == df["final_ub"].iat[i - 1]
+                and df["close"].iat[i] <= df["final_ub"].iat[i]
+                else df["final_lb"].iat[i]
+                if df[st].iat[i - 1] == df["final_ub"].iat[i - 1]
+                and df["close"].iat[i] > df["final_ub"].iat[i]
+                else df["final_lb"].iat[i]
+                if df[st].iat[i - 1] == df["final_lb"].iat[i - 1]
+                and df["close"].iat[i] >= df["final_lb"].iat[i]
+                else df["final_ub"].iat[i]
+                if df[st].iat[i - 1] == df["final_lb"].iat[i - 1]
+                and df["close"].iat[i] < df["final_lb"].iat[i]
+                else 0.00
+            )
+        # Mark the trend direction up/down
+        df[stx] = np.where(
+            (df[st] > 0.00), np.where((df["close"] < df[st]), "down", "up"), np.NaN
+        )
+
+        # Remove basic and final bands from the columns
+        df.drop(["basic_ub", "basic_lb", "final_ub", "final_lb"], inplace=True, axis=1)
+
+        df.fillna(0, inplace=True)
+
+        return DataFrame(index=df.index, data={"ST": df[st], "STX": df[stx]})
